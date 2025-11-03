@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel de Chamada de Pacientes</title>
+  <script src="https://unpkg.com/vue@3"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #689f38;
+      --secondary-color: #6c757d;
+      --background-light: #f8f9fa;
+      --surface-light: #ffffff;
+      --text-dark: #212529;
+      --text-light: #f8f9fa;
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: var(--background-light);
+      color: var(--text-dark);
+      margin: 0;
+      overflow: hidden;
+    }
+
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .initial-screen {
+      height: 100%;
+    }
+
+    .start-container,
+    .config-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+    }
+
+    .config-form {
+      background-color: var(--surface-light);
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      width: 100%;
+      max-width: 500px;
+    }
+
+    .config-form h2 {
+      margin-top: 0;
+      margin-bottom: 30px;
+      font-size: 2em;
+      color: var(--text-dark);
+      text-align: center;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 700;
+      color: var(--secondary-color);
+    }
+
+    .form-group input {
+      width: calc(100% - 26px);
+      padding: 12px;
+      font-size: 1em;
+      border-radius: 8px;
+      border: 1px solid #ced4da;
+    }
+
+    .start-button {
+      font-size: 2.5em;
+      padding: 20px 40px;
+      border-radius: 10px;
+      border: none;
+      background-color: var(--primary-color);
+      color: var(--text-light);
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .start-button:hover {
+      background-color: #558b2f;
+    }
+
+    .config-form .start-button {
+      font-size: 1.5em;
+      padding: 15px 30px;
+      width: 100%;
+    }
+
+    header {
+      background-color: var(--surface-light);
+      padding: 15px 30px;
+      text-align: center;
+      border-bottom: 3px solid var(--primary-color);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2.5em;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .main-content {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .column {
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .left-column {
+      flex: 7;
+      border-right: 1px solid #dee2e6;
+    }
+
+    .right-column {
+      flex: 3;
+      background-color: #e9ecef;
+    }
+
+    .column-title {
+      font-size: 2em;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #ced4da;
+    }
+
+    .no-calls {
+      font-size: 3em;
+      color: var(--secondary-color);
+      text-align: center;
+      margin-top: 50px;
+    }
+
+    .calls-list ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .calls-list li {
+      background-color: var(--surface-light);
+      border-radius: 8px;
+      margin-bottom: 10px;
+      transition: all 0.3s ease-in-out;
+    }
+
+    /* Left Column List */
+    .left-column .calls-list li {
+      padding: 20px 30px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    .left-column .calls-list .patient-name {
+      font-size: 4em;
+      font-weight: 900;
+      display: block;
+    }
+
+    .left-column .calls-list .room-label {
+      font-size: 2.5em;
+      font-weight: 700;
+      color: var(--text-dark);
+      display: block;
+      margin-top: 10px;
+    }
+
+    /* Right Column List */
+    .right-column .calls-list li {
+      background-color: transparent;
+      border: 1px solid #ced4da;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 1.2em;
+    }
+
+    .right-column .calls-list .patient-name {
+      font-weight: 700;
+    }
+
+    .right-column .calls-list .room-label {
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    /* Highlight for speaking patient */
+    .speaking {
+      background-color: var(--primary-color) !important;
+      transform: scale(1.03);
+    }
+
+    .speaking .patient-name,
+    .speaking .room-label {
+      color: var(--text-light) !important;
+    }
+
+    .spoken-waiting {
+      transform: scale(1.03);
+      background-color: var(--surface-light);
+    }
+
+    .debug-panel {
+      margin-top: 30px;
+      border-top: 2px dashed var(--secondary-color);
+      padding-top: 20px;
+    }
+
+    .debug-title {
+      font-size: 1.5em;
+      font-weight: 700;
+      color: var(--secondary-color);
+      margin-bottom: 15px;
+    }
+
+    .debug-container {
+      display: flex;
+      flex-direction: row;
+      gap: 20px;
+      width: 100%;
+    }
+
+    .debug-list {
+      flex: 1;
+      background-color: var(--surface-light);
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 15px;
+      min-width: 0;
+    }
+
+    .debug-list h4 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-size: 1.2em;
+      color: var(--primary-color);
+    }
+
+    .debug-list pre {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-size: 0.8em;
+      max-height: 300px;
+      overflow-y: auto;
+      background-color: #e9ecef;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    .error-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .error-box {
+      background-color: var(--surface-light);
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      width: 100%;
+      max-width: 700px;
+      text-align: center;
+    }
+    .error-box h2 {
+      color: #d32f2f;
+      font-size: 2em;
+      margin-bottom: 20px;
+    }
+    .error-details {
+      background-color: #f3f3f3;
+      border: 1px solid #ddd;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: left;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      max-height: 200px;
+      overflow-y: auto;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <div v-if="!configExists" class="initial-screen">
+      <div class="config-container">
+        <form @submit.prevent="saveAndStart" class="config-form">
+          <h2>Configuração do Painel</h2>
+          <div class="form-group">
+            <label for="apiUrl">URL da API</label>
+            <input id="apiUrl" v-model="formApiUrl" type="url" placeholder="https://sua.api/endpoint" required>
+          </div>
+          <div class="form-group">
+            <label for="unfSeqList">Unidades (opcional, separado por vírgula)</label>
+            <input id="unfSeqList" v-model="formUnfSeqList" type="text" placeholder="Ex: 90,91,105">
+          </div>
+          <div class="form-group">
+            <label for="ttsApiUrl">URL da API de TTS (opcional)</label>
+            <input id="ttsApiUrl" v-model="formTtsApiUrl" type="url" placeholder="http://localhost:8880">
+          </div>
+          <button type="submit" class="start-button">Salvar e Iniciar</button>
+        </form>
+      </div>
+    </div>
+
+    <template v-if="started && configExists">
+      <header>
+        <h1>Painel de Atendimento</h1>
+      </header>
+      <main class="main-content">
+        <div class="column left-column">
+          <h2 class="column-title">Chamando Agora</h2>
+          <div class="calls-list">
+            <div v-if="novosChamados.length === 0" class="no-calls">
+              Aguardando chamadas...
+            </div>
+            <ul>
+              <li v-for="paciente in sortedChamados" :key="paciente.nome"
+                :ref="el => { if (el) patientElements[paciente.nome] = el }"
+                :class="{ 'speaking': paciente.nome === speakingPatientName }">
+                <span class="patient-name">{{ paciente.nome }}</span>
+                <span class="room-label">{{ paciente.especialidade }}</span>
+                <span class="room-label">SALA {{ paciente.sala }}</span>
+              </li>
+            </ul>
+            <ul style="margin-top: 10px;">
+              <li v-for="paciente in spokenButWaitingPatients" :key="paciente.nome"
+                :ref="el => { if (el) patientElements[paciente.nome] = el }" class="spoken-waiting">
+                <span class="patient-name">{{ paciente.nome }}</span>
+                <span class="room-label">{{ paciente.especialidade }}</span>
+                <span class="room-label">SALA {{ paciente.sala }}</span>
+              </li>
+            </ul>
+          </div>
+
+          <div v-if="debugMode" class="debug-panel">
+            <h3 class="debug-title">Painel de Depuração</h3>
+            <div class="debug-container">
+              <div class="debug-list">
+                <h4>novosChamados ({{ novosChamados.length }})</h4>
+                <div v-if="novosChamados.length">
+                  <div v-for="paciente in novosChamados" :key="paciente.nome">
+                    <pre
+                      :style="{ backgroundColor: paciente.status === 'EM ATENDIMENTO' ? '#d4edda' : (paciente.status === 'PACIENTE ATENDIDO' ? '#f8d7da' : 'transparent') }">
+                      {{ JSON.stringify(paciente, null, 2) }}</pre>
+                  </div>
+                </div>
+                <pre v-else>[]</pre>
+              </div>
+              <div class="debug-list">
+                <h4>chamadosAnteriores</h4>
+                <pre>{{ JSON.stringify(chamadosAnteriores, null, 2) }}</pre>
+              </div>
+              <div class="debug-list">
+                <h4>spokenPatients</h4>
+                <pre>{{ JSON.stringify(spokenPatients, null, 2) }}</pre>
+              </div>
+              <div class="debug-list">
+                <h4>callQueue.callQueue</h4>
+                <pre>{{ JSON.stringify(callQueue ? callQueue.callQueue : 'null', null, 2) }}</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="column right-column">
+          <h2 class="column-title">Chamadas Anteriores</h2>
+          <div class="calls-list">
+            <ul>
+              <li v-for="paciente in chamadosAnteriores" :key="paciente.nome">
+                <span class="patient-name">{{ paciente.nome }}</span>
+                <br />
+                <!-- <span class="room-label">{{ paciente.especialidade }}</span> -->
+                <span class="room-label">SALA {{ paciente.sala }}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </main>
+    </template>
+
+    <div v-if="apiError" class="error-overlay">
+      <div class="error-box">
+        <h2>Erro de Comunicação</h2>
+        <p>Ocorreu um erro ao buscar os dados dos pacientes.</p>
+        <p><strong>Causa provável:</strong> A URL da API (`{{ apiUrl }}`) está retornando uma página HTML em vez dos dados esperados em formato JSON. Verifique se a URL está correta e se o servidor da API está funcionando normalmente.</p>
+        <pre class="error-details">Detalhes: {{ apiError }}</pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const {createApp} = Vue;
+
+    createApp({
+      /**
+       * Propriedades de dados para a aplicação Vue.
+       * @returns {object} O estado inicial do componente.
+       */
+      data() {
+        return {
+          /**
+           * Array de pacientes sendo chamados no momento.
+           * @type {Array<object>}
+           */
+          novosChamados: [],
+          /**
+           * Array de pacientes que foram chamados anteriormente.
+           * @type {Array<object>}
+           */
+          chamadosAnteriores: [],
+          /**
+           * A URL da API de dados de pacientes.
+           * @type {string}
+           */
+          apiUrl: '',
+          /**
+           * A URL da API de Text-to-Speech (TTS).
+           * @type {string}
+           */
+          ttsApiUrl: '',
+          /**
+           * Indica se o painel foi iniciado e está exibindo as chamadas de pacientes.
+           * @type {boolean}
+           */
+          started: false,
+          /**
+           * Sinalizador para determinar se é a primeira busca de dados.
+           * @type {boolean}
+           */
+          isFirstFetch: true,
+          /**
+           * Um hash das chamadas atuais para detectar mudanças na lista de pacientes.
+           * @type {string}
+           */
+          currentCallsHash: '',
+          /**
+           * O nome do paciente que está sendo anunciado pelo TTS no momento.
+           * @type {string|null}
+           */
+          speakingPatientName: null,
+          /**
+           * O gerenciador da fila de chamadas, responsável por anunciar os pacientes em sequência.
+           * @type {object|null}
+           */
+          callQueue: null,
+          /**
+           * Modelo para o campo de entrada da URL da API no formulário de configuração.
+           * @type {string}
+           */
+          formApiUrl: '',
+          /**
+           * Modelo para o campo de entrada da lista de unidades opcionais no formulário de configuração.
+           * @type {string}
+           */
+          formUnfSeqList: '',
+          /**
+           * Modelo para o campo de entrada da URL da API de TTS no formulário de configuração.
+           * @type {string}
+           */
+          formTtsApiUrl: '',
+          /**
+           * Indica se a configuração da API (apiUrl) existe no localStorage.
+           * @type {boolean}
+           */
+          configExists: false,
+          spokenPatients: [],
+          debugMode: false,
+          patientElements: {},
+          apiError: null,
+        };
+      },
+      methods: {
+        /**
+         * Converte uma string para o formato Title Case (primeira letra de cada palavra em maiúscula).
+         * @param {string} str - A string de entrada.
+         * @returns {string} A string convertida para Title Case.
+         */
+        titleCase(str) {
+          if (!str) return '';
+          return str.toLowerCase().split(' ').map(function (word) {
+            return (word.charAt(0).toUpperCase() + word.slice(1));
+          }).join(' ');
+        },
+        /**
+         * Cria e retorna um objeto gerenciador de fila de chamadas.
+         * Este gerenciador busca os áudios dos pacientes em paralelo
+         * e os reproduz sequencialmente para garantir que não haja sobreposição.
+         * @returns {object} Um objeto com métodos para gerenciar a fila.
+         */
+        createCallQueueManager() {
+          const vueInstance = this;
+          return {
+            callQueue: [],
+            isSpeaking: false,
+            isFetching: false,
+
+            /**
+             * Adiciona novos pacientes à fila. Para cada paciente, a busca do áudio TTS
+             * é iniciada imediatamente e em paralelo com outras.
+             * @param {Array<object>} patients - Um array de objetos de pacientes para adicionar à fila.
+             */
+            add(patients) {
+              const newCalls = patients.map(p => ({
+                patient: p,
+                status: 'fetching',
+                audioUrl: null,
+                audio: null
+              }));
+              const isQueueEmpty = this.callQueue.length === 0;
+              this.callQueue.push(...newCalls);
+              if (isQueueEmpty) {
+                this._processFetchQueue();
+              }
+            },
+
+            _processFetchQueue() {
+              if (this.isFetching) return;
+              const nextCallToFetch = this.callQueue.find(c => c.status === 'fetching');
+              if (!nextCallToFetch) return;
+
+              this.isFetching = true;
+              this._fetchAudioForCall(nextCallToFetch);
+            },
+
+            _fetchAudioForCall(call) {
+              let sayText = `Paciente ${vueInstance.titleCase(call.patient.nome)}, sala ${call.patient.sala}, especialidade ${call.patient.especialidade}`;
+              if (vueInstance.ttsApiUrl) {
+                const ttsUrl = `${vueInstance.ttsApiUrl}/v1/audio/speech`;
+                const requestBody = {model: 'tts-1', input: sayText, voice: 'pm_alex', lang_code: 'p'};
+                fetch(ttsUrl, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(requestBody)})
+                  .then(r => r.ok ? r.blob() : Promise.reject(new Error(`TTS API request failed with status ${r.status}`)))
+                  .then(audioBlob => {
+                    call.audioUrl = URL.createObjectURL(audioBlob);
+                    call.audio = new Audio(call.audioUrl);
+                    call.status = 'ready';
+                  })
+                  .catch(error => {
+                    call.status = 'error';
+                  })
+                  .finally(() => {
+                    this.isFetching = false;
+                    this._processPlayback();
+                    this._processFetchQueue();
+                  });
+              } else {
+                const utterance = new SpeechSynthesisUtterance(sayText);
+                utterance.lang = 'pt-BR';
+                call.audio = utterance;
+                call.status = 'ready';
+                this.isFetching = false;
+                this._processPlayback();
+                this._processFetchQueue();
+              }
+            },
+
+            async _playAndRepeat(call, repetitions, interval, onComplete) {
+              for (let i = 0; i < repetitions; i++) {
+                try {
+                  await new Promise((resolve, reject) => {
+                    if (call.audio instanceof Audio) {
+                      call.audio.currentTime = 0;
+                      call.audio.onended = resolve;
+                      call.audio.onerror = reject;
+                      call.audio.play().catch(reject);
+                    } else if (call.audio instanceof SpeechSynthesisUtterance) {
+                      const newUtterance = new SpeechSynthesisUtterance(call.audio.text);
+                      newUtterance.lang = call.audio.lang;
+                      newUtterance.onend = resolve;
+                      newUtterance.onerror = reject;
+                      speechSynthesis.speak(newUtterance);
+                    }
+                  });
+                  if (i < repetitions - 1) await new Promise(r => setTimeout(r, interval));
+                } catch (e) {
+
+                  break;
+                }
+              }
+              onComplete();
+            },
+            _processPlayback() {
+              if (this.isSpeaking) return;
+              const nextCall = this.callQueue.find(c => c.status === 'ready' || c.status === 'error');
+              if (!nextCall) return;
+
+              const onPlaybackComplete = () => {
+                nextCall.status = 'done';
+                if (nextCall.audioUrl) URL.revokeObjectURL(nextCall.audioUrl);
+
+                // Apenas marca o paciente como falado, a migração ocorrerá no próximo ciclo de polling
+                if (!vueInstance.spokenPatients.includes(nextCall.patient.nome)) {
+                  vueInstance.spokenPatients.push(nextCall.patient.nome);
+                }
+
+                while (this.callQueue.length > 0 && (this.callQueue[0].status === 'done' || this.callQueue[0].status === 'error')) {
+                  this.callQueue.shift();
+                }
+
+                this.isSpeaking = false;
+                vueInstance.speakingPatientName = null;
+                setTimeout(() => this._processPlayback(), 300);
+              };
+
+              if (nextCall.status === 'error') {
+
+                onPlaybackComplete();
+                return;
+              }
+
+              this.isSpeaking = true;
+              nextCall.status = 'speaking';
+              vueInstance.speakingPatientName = nextCall.patient.nome;
+              this._playAndRepeat(nextCall, 3, 2000, onPlaybackComplete);
+            }
+          };
+        },
+        createPollingService(onNewPatients) {
+          let isStopped = false;
+          const pollInterval = 60000; // 1 minuto
+          const vueInstance = this;
+
+          async function poll() {
+            if (isStopped) return;
+
+
+
+            // Etapa de Migração: Move pacientes já lidos para o histórico
+            if (vueInstance.spokenPatients.length > 0) {
+              const spokenInThisBatch = vueInstance.novosChamados.filter(p => vueInstance.spokenPatients.includes(p.nome));
+
+              if (spokenInThisBatch.length > 0) {
+
+                // Adiciona ao histórico
+                vueInstance.chamadosAnteriores.unshift(...spokenInThisBatch);
+                if (vueInstance.chamadosAnteriores.length > 20) {
+                  vueInstance.chamadosAnteriores.splice(20);
+                }
+
+                // Remove da fila principal
+                vueInstance.novosChamados = vueInstance.novosChamados.filter(p => !vueInstance.spokenPatients.includes(p.nome));
+              }
+              // Limpa a lista de pacientes falados para o próximo ciclo
+              vueInstance.spokenPatients = [];
+            }
+
+
+            try {
+              const response = await fetch(vueInstance.apiUrl);
+              if (!response.ok) {
+                throw new Error(`A resposta da rede não foi bem-sucedida: ${response.status} ${response.statusText}`);
+              }
+
+              const contentType = response.headers.get("content-type");
+              if (!contentType || !contentType.includes("application/json")) {
+                const responseText = await response.text();
+                throw new TypeError(`Resposta inesperada do servidor. Esperava JSON, mas recebeu '${contentType}'. Início da resposta: ${responseText.substring(0, 200)}...`);
+              }
+
+              const apiData = await response.json();
+              vueInstance.apiError = null; // Limpa o erro em caso de sucesso
+
+              console.table('DEBUG: Dados da API recebidos:', apiData);
+              if (!Array.isArray(apiData)) {
+                if (!isStopped) setTimeout(poll, pollInterval);
+                return;
+              }
+
+              const activeData = apiData.filter(p => p && p.nome && p.status !== 'PACIENTE ATENDIDO');
+              console.log('DEBUG: Pacientes ativos (após filtro de status):', activeData);
+
+              const namesInMainQueue = new Set(vueInstance.novosChamados.map(p => p.nome.trim()));
+              const namesInTtsQueue = new Set(vueInstance.callQueue.callQueue.map(c => c.patient.nome.trim()));
+              const namesInHistory = new Set(vueInstance.chamadosAnteriores.map(p => p.nome.trim()));
+              const allKnownNames = new Set([...namesInMainQueue, ...namesInTtsQueue, ...namesInHistory]);
+
+              const trulyNewPatients = activeData.filter(p => !allKnownNames.has(p.nome.trim()));
+              console.log('DEBUG: Pacientes novos para adicionar:', trulyNewPatients);
+
+              if (trulyNewPatients.length > 0) {
+                onNewPatients(trulyNewPatients);
+              }
+
+            } catch (error) {
+              console.error('ERRO no polling service:', error);
+              vueInstance.apiError = error.message; // Exibe o erro na UI
+            } finally {
+              if (!isStopped) setTimeout(poll, pollInterval);
+            }
+          };
+
+          return {
+            start() {
+              isStopped = false;
+              poll();
+            },
+            stop() {
+              isStopped = true;
+            }
+          };
+        },
+        /**
+         * Salva as URLs da API configuradas (dados e TTS) no localStorage e inicia o painel.
+         * Lida com a análise da URL da API para extrair/adicionar o parâmetro 'unf_seq'.
+         */
+        saveAndStart() {
+          console.log('DEBUG: Método saveAndStart() chamado pelo formulário.');
+          if (!this.formApiUrl) {
+            alert('Por favor, informe a URL da API.');
+            return;
+          }
+          let finalApiUrl = this.formApiUrl.trim();
+          const unfSeqList = this.formUnfSeqList.trim();
+
+          finalApiUrl = finalApiUrl.replace(/([?&])unf_seq=[^&]*/, '$1').replace(/[?&]$/, '');
+
+          if (unfSeqList) {
+            const separator = finalApiUrl.includes('?') ? '&' : '?';
+            finalApiUrl += `${separator}unf_seq=${unfSeqList}`;
+          }
+
+          localStorage.setItem('apiUrl', finalApiUrl);
+          this.apiUrl = finalApiUrl;
+
+
+          const ttsApiUrl = this.formTtsApiUrl.trim();
+          if (ttsApiUrl) {
+            localStorage.setItem('ttsApiUrl', ttsApiUrl);
+            this.ttsApiUrl = ttsApiUrl;
+
+          } else {
+            localStorage.removeItem('ttsApiUrl');
+            this.ttsApiUrl = '';
+
+          }
+
+          this.configExists = true;
+          this.start();
+        },
+        /**
+         * Tenta desbloquear o contexto de áudio do navegador na primeira interação do usuário.
+         * Esta é uma solução alternativa para as políticas de autoplay dos navegadores que impedem
+         * a reprodução de áudio sem um gesto prévio do usuário. Ele reproduz um arquivo de áudio
+         * muito curto e silencioso.
+         * @private
+         */
+        unlockAudio() {
+          console.log('DEBUG: unlockAudio acionado por clique.');
+          this.pollingService.start();
+
+          // Create a silent audio buffer and play it
+          const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          const buffer = audioContext.createBuffer(1, 1, 22050); // 1 channel, 1 sample, 22050 Hz
+          const source = audioContext.createBufferSource();
+          source.buffer = buffer;
+          source.connect(audioContext.destination);
+          source.start(0);
+          source.onended = () => {
+
+            // Clean up the AudioContext if it's not needed further
+            if (audioContext.state === 'running') {
+              audioContext.close();
+            }
+          };
+        },        /**
+         * Inicializa o painel carregando as URLs da API do localStorage.
+         * Se as URLs forem encontradas, define `started` como true, busca os dados e configura uma busca periódica.
+         * Se nenhuma URL de API for encontrada, mantém a tela de configuração ativa.
+         */
+        start() {
+          console.log('DEBUG: Método start() chamado. Definindo `started` como true.');
+          this.started = true;
+        },
+        handleClick() {
+          console.log('DEBUG: handleClick acionado.');
+          console.log('DEBUG: configExists:', this.configExists, 'started:', this.started);
+          if (this.configExists && !this.started) {
+            this.start();
+          }
+          this.unlockAudio();
+        },
+        async saveConfig() {
+        },
+      },
+
+      watch: {
+        speakingPatientName(newName) {
+          if (newName) {
+            this.$nextTick(() => {
+              const el = this.patientElements[newName];
+              if (el) {
+                el.scrollIntoView({behavior: 'smooth', block: 'center'});
+              }
+            });
+          }
+        }
+      },
+
+      beforeUpdate() {
+        this.patientElements = {};
+      },
+
+      computed: {
+        sortedChamados() {
+          if (!this.speakingPatientName) {
+            return [];
+          }
+          const speakingPatient = this.novosChamados.find(p => p.nome === this.speakingPatientName);
+          return speakingPatient ? [speakingPatient] : [];
+        },
+
+        spokenButWaitingPatients() {
+          if (!this.spokenPatients.length) return [];
+          return this.novosChamados.filter(p =>
+            this.spokenPatients.includes(p.nome) && p.nome !== this.speakingPatientName
+          );
+        }
+      },
+
+      created() {
+        console.log('DEBUG: Componente Vue criando... Verificando localStorage.');
+        this.callQueue = this.createCallQueueManager();
+        this.pollingService = this.createPollingService(newPatients => {
+          this.novosChamados.push(...newPatients);
+          this.callQueue.add(newPatients);
+        });
+
+        if (localStorage.getItem('debug') === 'true') {
+          this.debugMode = true;
+        }
+
+        const apiUrl = localStorage.getItem('apiUrl') || '';
+        const ttsApiUrl = localStorage.getItem('ttsApiUrl') || '';
+
+        if (apiUrl) {
+          console.log('DEBUG: apiUrl encontrada no localStorage. `configExists` será definido como true.');
+          this.configExists = true;
+          this.apiUrl = apiUrl;
+          this.ttsApiUrl = ttsApiUrl;
+
+          // Preenche o formulário para o caso de o usuário precisar editar
+          this.formTtsApiUrl = ttsApiUrl;
+          const urlParts = apiUrl.split('?');
+          const baseUrl = urlParts[0];
+          const searchParams = new URLSearchParams(urlParts.length > 1 ? urlParts[1] : '');
+          const unfSeq = searchParams.get('unf_seq');
+          if (unfSeq) {
+            this.formUnfSeqList = unfSeq;
+            searchParams.delete('unf_seq');
+            const remainingParams = searchParams.toString();
+            this.formApiUrl = remainingParams ? `${baseUrl}?${remainingParams}` : baseUrl;
+          } else {
+            this.formApiUrl = apiUrl;
+            this.formUnfSeqList = '';
+          }
+        }
+      },
+
+      /**
+       * Hook do ciclo de vida do Vue: Chamado após a instância ser montada.
+       * Inicializa a fila de chamadas e tenta carregar as configurações de API salvas do localStorage.
+       */
+      mounted() {
+        console.log(`DEBUG: Componente montado. Valor de configExists: ${this.configExists}`);
+        document.body.addEventListener('click', this.unlockAudio, {once: true});
+
+        if (this.configExists) {
+          this.start();
+        }
+      }
+    }).mount('#app');
+  </script>
+</body>
+
+</html>

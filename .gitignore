@@ -1,0 +1,16 @@
+# Arquivos de ambiente
+.env
+
+# Ambiente virtual do Python
+.venv/
+virtualenv/
+env/
+
+# Arquivos compilados do Python
+__pycache__/
+*.pyc
+
+# Arquivos de sistema operacional
+.DS_Store
+Thumbs.db
+GEMINI.md

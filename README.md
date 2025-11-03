@@ -19,7 +19,7 @@ Este projeto é um painel de chamada de pacientes em tempo real, projetado para 
 - Python 3.8+
 - pip
 - Git
-- Docker e Docker Compose
+- Docker e Docker Compose (ou podman e podman-compose)
 
 ## Instalação e Execução
 
@@ -27,7 +27,7 @@ Siga os passos abaixo para configurar e executar o ambiente completo.
 
 1.  **Clone o repositório:**
     ```sh
-    git clone <URL_DO_SEU_REPOSITORIO_NO_GITHUB>
+    git clone https://github.com/HCUFPE/painel-de-chamada-de-pacientes.git
     cd Painel
     ```
 
@@ -59,7 +59,10 @@ Siga os passos abaixo para configurar e executar o ambiente completo.
     ```sh
     cp .env.example .env
     ```
-    Agora, edite o arquivo `.env` com os dados corretos.
+    Agora, crie as variáveis de ambiente a partir do arquivo .env.
+    ```sh
+    source .env
+    ```
 
 6.  **Inicie o servidor da aplicação:**
     ```sh
@@ -68,3 +71,9 @@ Siga os passos abaixo para configurar e executar o ambiente completo.
 
 7.  **Acesse o painel:**
     Abra seu navegador e acesse `http://localhost:8000`.
+
+8. **Configure as URLs das APIs**
+    No arquivo `painel.html`, ajuste as URLs das APIs conforme necessário:
+    - URL da API de pacientes: `http://localhost:8000/api/pacientes`
+    - Código da(s) Unidade(s) Funcional(is), de acordo com o cadastro no AGHU
+    - URL do serviço de TTS: `http://localhost:8880`

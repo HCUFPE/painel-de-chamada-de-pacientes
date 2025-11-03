@@ -654,6 +654,12 @@
           async function poll() {
             if (isStopped) return;
 
+            if (!vueInstance.apiUrl) {
+              console.log('DEBUG: apiUrl ainda não configurada. Aguardando...');
+              if (!isStopped) setTimeout(poll, pollInterval);
+              return;
+            }
+
 
 
             // Etapa de Migração: Move pacientes já lidos para o histórico

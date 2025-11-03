@@ -82,16 +82,25 @@ def query_database():
 
 # --- Configuração do Servidor Web ---
 class MyHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
+    def do_OPTIONS(self):
+        self.send_response(200, "ok")
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS')
+        self.send_header("Access-Control-Allow-Headers", "X-Requested-With, Content-type")
+        self.end_headers()
+
     def do_GET(self):
-        if self.path == '/api/pacientes':
+        if self.path.startswith('/api/'):
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             
-            data = query_database()
+            if self.path == '/api/pacientes':
+                data = query_database()
+            else:
+                data = {"error": f"Endpoint '{self.path}' not found. Please use '/api/pacientes'."}
             
-            # Converte objetos datetime para string, se houver
             def json_converter(o):
                 if isinstance(o, datetime):
                     return o.isoformat()
